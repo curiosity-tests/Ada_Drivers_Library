@@ -1,6 +1,27 @@
 name: Build and test
-on: [pull_request, push]
+run-name: "Build and test ${{ inputs.leg || github.event_name }} ${{ inputs.racecar_run }}"
+on:
+  pull_request:
+  push:
 
+  workflow_dispatch:
+    inputs:
+      leg:
+        description: "baseline (uninstrumented) or instrumented (under chalk/curiosity)"
+        type: choice
+        options: [instrumented, baseline]
+        default: baseline
+      profile:
+        description: "CrashOverride chalk profile"
+        type: string
+        default: curiosity-tests-racecar
+      racecar_run:
+        description: "racecar correlation token, echoed into the run name"
+        type: string
+        default: ""
+
+env:
+  CHALK_ON: ${{ inputs.leg == 'instrumented' }}
 jobs:
   linux-build:
     name: Build and test on Linux
@@ -35,6 +56,7 @@ jobs:
     - run: python3 $PWD/scripts/check_readme.py
 
   win-build:
+    if: false   # racecar: non-Linux runner, not measured here
     name: Build and test on Windows
     runs-on: windows-latest
     defaults:
